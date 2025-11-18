@@ -48,16 +48,18 @@ stroke (0 = no stroke, 1 = stroke)
 
 ## 📌 3. Project Structure
 
+```bash
 stroke-risk-prediction/
 │
 ├── Dockerfile
 ├── Pipfile
 ├── Pipfile.lock
-├── train.py # trains the model & saves stroke_model.bin
-├── predict.py # API service for inference
-├── stroke_model.bin # trained model file
-├── healthcare-dataset-stroke-data.csv
-└── notebook.ipynb # full EDA + model training + validation
+├── train.py                    # trains the model & saves stroke_model.bin
+├── predict.py                  # API service for inference
+├── stroke_model.bin            # serialized model (dv + scaler + model + BMI median)
+├── healthcare-dataset-stroke-data.csv   # dataset
+└── notebook.ipynb              # EDA + model development + validation
+```
 
 
 ---
@@ -163,6 +165,7 @@ curl -X POST http://0.0.0.0:9696/predict \
 [https://stroke-risk-prediction.fly.dev/predict](https://stroke-risk-prediction.fly.dev/predict)
 
 ### 🌐 Example Request (Live)
+```bash
 curl -X POST https://stroke-risk-prediction.fly.dev/predict \
   -H "Content-Type: application/json" \
   -d '{
@@ -177,6 +180,7 @@ curl -X POST https://stroke-risk-prediction.fly.dev/predict \
     "bmi": 36.6,
     "smoking_status": "formerly smoked"
   }'
+```
 ### 📸 Screenshot of successful cloud prediction
 <img width="954" height="244" alt="Screenshot 2025-11-18 at 6 25 12 AM" src="https://github.com/user-attachments/assets/ba80ec39-8378-4a30-9d79-53891c5be46d" />
 
