@@ -8,26 +8,22 @@ with open(model_file, "rb") as f_in:
 
 app = Flask("stroke-predictor")
 
-BEST_THRESHOLD = 0.164  # From validation
-
 @app.route("/predict", methods=["POST"])
 def predict():
 
     patient = request.get_json()
 
-    # Missing BMI handling
+    # missing BMI handling
     if patient.get("bmi") is None:
         patient["bmi"] = bmi_median
 
-    # Convert dict → one-hot
+    # dict → vector
     X = dv.transform([patient])
     X = scaler.transform(X)
 
-    # Predict probability
-    prob = model.predict_proba(X)[0, 1]
-
-    # Apply threshold
-    stroke = prob >= BEST_THRESHOLD
+    # decision tree outputs
+    prob = model.predict_proba(X)[0, 1]     # probability
+    stroke = model.predict(X)[0]            # class (0 or 1)
 
     result = {
         "stroke_probability": float(prob),

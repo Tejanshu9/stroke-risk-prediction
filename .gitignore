@@ -32,7 +32,6 @@ env/
 *.log
 
 # Pipenv
-Pipfile.lock
 .idea/
 
 # Docker

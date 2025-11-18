@@ -3,93 +3,78 @@
 
 import pickle
 import pandas as pd
-import numpy as np
-
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-
+from sklearn.tree import DecisionTreeClassifier
 
 # ======================================================
 # PARAMETERS
 # ======================================================
-C = 10   # Best hyperparameter from notebook
 output_file = "stroke_model.bin"
 
+BEST_PARAMS = {
+    "max_depth": 3,
+    "min_samples_split": 2,
+    "min_samples_leaf": 20,
+    "class_weight": "balanced",
+    "random_state": 1
+}
 
 # ======================================================
-# LOAD RAW DATA
+# LOAD DATA
 # ======================================================
 df = pd.read_csv("healthcare-dataset-stroke-data.csv")
 
-# Drop ID column (not useful)
+# Remove ID column
 df = df.drop(columns=["id"])
 
-# Fix smoking_status "Unknown" → keep as category (model handles it)
-
 # ======================================================
-# FIX MISSING VALUES (BMI)
+# FIX MISSING BMI
 # ======================================================
 bmi_median = df["bmi"].median()
 df["bmi"] = df["bmi"].fillna(bmi_median)
 
-
 # ======================================================
-# TRAIN / TEST SPLIT (same as notebook)
-# 80% train, 20% test
+# TRAIN / TEST SPLIT (80/20) — like the notebook
 # ======================================================
 df_full_train, df_test = train_test_split(df, test_size=0.2, random_state=1)
 
-
-# ======================================================
-# SEPARATE TARGET
-# ======================================================
 y_full_train = df_full_train["stroke"].values
 df_full_train = df_full_train.drop(columns=["stroke"])
 
 y_test = df_test["stroke"].values
 df_test = df_test.drop(columns=["stroke"])
 
-
-# ======================================================
-# FEATURE LISTS (same as notebook)
-# ======================================================
-numerical = ['age', 'hypertension', 'heart_disease',
-             'avg_glucose_level', 'bmi']
-
-categorical = ['gender', 'ever_married', 'work_type',
-               'residence_type', 'smoking_status']
-
-
 # ======================================================
 # TRAINING FUNCTION
 # ======================================================
-def train(df, y, C):
+def train_decision_tree(df, y, params):
 
     train_dicts = df.to_dict(orient="records")
 
+    # One-hot encoding
     dv = DictVectorizer(sparse=False)
     X = dv.fit_transform(train_dicts)
 
+    # Scaling
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    model = LogisticRegression(C=C, max_iter=1000)
-    model.fit(X, y)
+    # Decision Tree with best hyperparameters
+    dt = DecisionTreeClassifier(**params)
+    dt.fit(X, y)
 
-    return dv, scaler, model
-
+    return dv, scaler, dt
 
 # ======================================================
 # TRAIN FINAL MODEL
 # ======================================================
-print("Training final model...")
+print("Training Decision Tree model...")
 
-dv, scaler, model = train(df_full_train, y_full_train, C=C)
+dv, scaler, model = train_decision_tree(df_full_train, y_full_train, BEST_PARAMS)
 
 print("Model training completed!")
-
 
 # ======================================================
 # SAVE MODEL + DV + SCALER + MEDIAN
