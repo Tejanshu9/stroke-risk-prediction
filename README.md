@@ -1,14 +1,16 @@
 # 🧠 Stroke Risk Prediction
 
-A machine-learning project that predicts the probability of a person suffering a stroke based on medical and demographic features.  
+A machine-learning project that predicts the probability of a person suffering a stroke based on medical and demographic features.
+
 The project includes:
 
 - Full EDA + model training in Jupyter Notebook  
-- Logistic Regression model with threshold tuning  
+- Logistic Regression, Decision Tree, and Random Forest evaluation  
+- Final model selection (Decision Tree)  
 - Model serialization (`stroke_model.bin`)  
 - REST API service using Flask  
 - Production-grade serving using Gunicorn + Docker  
-- Fly.io deployment ready  
+- Fly.io deployment  
 
 ---
 
@@ -30,10 +32,14 @@ This is an **imbalanced classification problem** (≈5% stroke cases).
 Therefore, evaluation focuses on:
 
 - ROC-AUC  
-- Precision-Recall AUC  
-- Threshold tuning (best F1-score)
+- Precision  
+- Recall  
+- F1-score  
+- Confusion Matrix  
 
-The final model is a **Logistic Regression** classifier with one-hot encoded categorical features and standardized numerical attributes.
+For medical applications, **high recall is preferred** (catch most stroke-risk cases), and lower precision is acceptable.
+
+The final deployed model is a **Decision Tree Classifier** trained with recall-focused evaluation.
 
 ---
 
@@ -43,8 +49,10 @@ Dataset used: **Healthcare Stroke Prediction Dataset**
 File: `healthcare-dataset-stroke-data.csv`
 
 Contains **5110 rows** and **12 columns**.  
-The target variable is:
-stroke (0 = no stroke, 1 = stroke)
+The target variable is:  
+`stroke` → (0 = no stroke, 1 = stroke)
+
+---
 
 ## 📌 3. Project Structure
 
@@ -54,48 +62,54 @@ stroke-risk-prediction/
 ├── Dockerfile
 ├── Pipfile
 ├── Pipfile.lock
-├── train.py                    # trains the model & saves stroke_model.bin
-├── predict.py                  # API service for inference
-├── stroke_model.bin            # serialized model (dv + scaler + model + BMI median)
-├── healthcare-dataset-stroke-data.csv   # dataset
-└── notebook.ipynb              # EDA + model development + validation
+├── train.py                    # trains the final Decision Tree model
+├── predict.py                  # Flask API service for inference
+├── stroke_model.bin            # serialized model (dv + scaler + DT model + BMI median)
+├── healthcare-dataset-stroke-data.csv
+└── notebook.ipynb              # EDA + model development + evaluation
 ```
-
 
 ---
 
-## 📌 4. Model Training Pipeline  
+## 📌 4. Model Training Pipeline
 
-### ✔ Steps Performed  
+### ✔ Steps Performed
 
-1. **Data Cleaning**  
-   - Missing BMI values imputed using median  
-   - Stroke column extracted as target  
+---
 
-2. **Train/Validation/Test Split**
-   - The dataset is first split into train (80%) and test (20%)
-   - The test set remains completely untouched until final evaluation
-   - From the training portion, an additional validation split (20% of train) is created
-   - The validation set is used exclusively for threshold tuning (choosing best decision threshold based on F1-score)
+### **1. Data Cleaning**
+- Missing BMI values imputed using **median**  
+- `stroke` column extracted as the target variable  
 
-3. **K-Fold Cross-Validation (Model Selection)**
-   - A 5-Fold Cross-Validation is applied on the training dataset to ensure the model generalizes well.
-   - For each fold:
-     - The model trains on 80% of the data
-     - Evaluates on the remaining 20%
-   - Metrics evaluated during CV:
-     - ROC-AUC
-     - PR-AUC  
-   - This process helps in selecting optimal hyperparameters such as `C` and `class_weight` by testing performance across multiple folds.
+---
 
+### **2. Train / Validation / Test Split**
+- Dataset split into **80% Train** and **20% Test**  
+- Test set kept **untouched** for final evaluation  
+- Validation used earlier during **Logistic Regression threshold tuning**  
+
+---
+
+### **3. K-Fold Cross-Validation (Model Selection)**
+Applied **5-Fold Cross Validation** to compare the following models:
+
+- **Logistic Regression**  
+- **Decision Tree**  
+- **Random Forest**  
+
+**Metrics evaluated during K-Fold:**
+- **ROC-AUC**  
+- **Precision**  
+- **Recall**  
+- **F1-score**  
 
 4. **Feature Encoding**  
    - One-hot encoding for categorical columns  
    - Numerical columns scaled using `StandardScaler`  
 
-5. **Logistic Regression Model**  
-   - Hyperparameter tuning using K-Fold  
-   - Best threshold found using validation F1  
+5. **Decision Tree Model**  
+   - The final deployed model is a **Decision Tree Classifier** trained with the best hyperparameters selected from K-Fold cross-      validation and recall-focused evaluation.
+
 
 6. **Final Model Training**  
    - Model trained on the full training dataset  
@@ -108,6 +122,27 @@ stroke-risk-prediction/
 - `bmi_median` → For imputing missing BMI  
 
 ---
+## 📌 Model Selection Summary
+
+For this project, three different machine learning models were trained and evaluated:
+
+- **Logistic Regression**
+- **Decision Tree Classifier**
+- **Random Forest Classifier**
+
+Since this is a **medical screening problem**, the priority is:
+
+- **High Recall** — important to correctly identify as many stroke-risk patients as possible  
+- **Lower Precision is acceptable** — false positives are not harmful compared to missing a real stroke case
+
+During evaluation:
+
+- **The Decision Tree achieved the highest recall**, making it the most suitable model for early-risk medical detection.
+- **ROC-AUC scores were similar for all three models**, showing that each model captured the underlying pattern equally well.
+- Detailed metrics (ROC-AUC, Precision, Recall, F1-Score, Confusion Matrices) for each model are included in **notebooks.ipynb**.
+
+Based on recall performance and overall interpretability, the **Decision Tree model** was chosen as the final model for deployment.
+
 
 ## 📌 5. Running the Project Locally  
 
