@@ -1,0 +1,39 @@
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb~
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files
+.env
+*.env
+
+# Virtual environment folders
+venv/
+.venv/
+env/
+
+# macOS files
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Model artifacts
+*.bin
+*.pkl
+*.joblib
+
+# Logs
+*.log
+
+# Pipenv
+Pipfile.lock
+.idea/
+
+# Docker
+*.tar
