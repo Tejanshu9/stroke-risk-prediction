@@ -73,16 +73,31 @@ stroke-risk-prediction/
    - Stroke column extracted as target  
 
 2. **Train/Validation/Test Split**
+   - The dataset is first split into train (80%) and test (20%)
+   - The test set remains completely untouched until final evaluation
+   - From the training portion, an additional validation split (20% of train) is created
+   - The validation set is used exclusively for threshold tuning (choosing best decision threshold based on F1-score)
 
-3. **Feature Encoding**  
+3. **K-Fold Cross-Validation (Model Selection)**
+   - A 5-Fold Cross-Validation is applied on the training dataset to ensure the model generalizes well.
+   - For each fold:
+     - The model trains on 80% of the data
+     - Evaluates on the remaining 20%
+   - Metrics evaluated during CV:
+     - ROC-AUC
+     - PR-AUC  
+   - This process helps in selecting optimal hyperparameters such as `C` and `class_weight` by testing performance across multiple folds.
+
+
+4. **Feature Encoding**  
    - One-hot encoding for categorical columns  
    - Numerical columns scaled using `StandardScaler`  
 
-4. **Logistic Regression Model**  
+5. **Logistic Regression Model**  
    - Hyperparameter tuning using K-Fold  
    - Best threshold found using validation F1  
 
-5. **Final Model Training**  
+6. **Final Model Training**  
    - Model trained on the full training dataset  
    - Exported as `stroke_model.bin` using `pickle`
 
